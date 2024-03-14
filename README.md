@@ -23,6 +23,3 @@ The game is developed using HTML, CSS, and JavaScript.
 - **HTML:** `index.html` sets up the game page structure, including the game board and buttons.
 - **JavaScript:** `script.js` handles the game logic, such as initializing the game, moving the snake, generating food, rendering the game board, and managing user input.
 
-## Acknowledgments
-- The game is hosted on GitHub Pages at [this link](https://sabr5840.github.io/Snake_game/).
-- Last deployed by @sabr5840.
