@@ -1,11 +1,14 @@
+document.getElementById('try-again').addEventListener('click', tryAgain);
+document.getElementById('pause').addEventListener('click', pauseGame); // Tilføj event listener til pauseknappen
+
 const ROWS = 20;
 const COLS = 30;
 
 let snake;
 let food;
 let score;
-let interval;
 let direction;
+let interval;
 
 const gameBoard = document.getElementById('game-board');
 gameBoard.style.gridTemplateColumns = `repeat(${COLS}, 20px)`;
@@ -13,6 +16,9 @@ gameBoard.style.gridTemplateRows = `repeat(${ROWS}, 20px)`;
 
 // Start the game
 initializeGame();
+function tryAgain() {
+    initializeGame(); 
+}
 
 function initializeGame() {
     console.log("Initializing game...");
@@ -27,7 +33,6 @@ function initializeGame() {
 }
 
 function moveSnake() {
-    console.log("Moving snake...");
     const head = { ...snake[0] };
     switch (direction) {
         case 'up':
@@ -44,6 +49,12 @@ function moveSnake() {
             break;
     }
 
+    // Tjekker om slangen rammer kanten af spillepladen
+    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
+        clearInterval(interval);
+        alert('Game Over! Your Score: ' + score);
+        return;
+    }
 
     if (head.x === food.x && head.y === food.y) {
         score++;
@@ -71,11 +82,8 @@ function generateFoodPosition() {
     return { x: foodX, y: foodY };
 }
 
-
 function render() {
-    console.log("Rendering game...");
     gameBoard.innerHTML = '';
-
     
     snake.forEach(segment => {
         const snakeSegment = document.createElement('div');
@@ -92,8 +100,6 @@ function render() {
     gameBoard.appendChild(foodCell);
 }
 
-
-//keydown event and change direction
 function changeDirection(event) {
     switch (event.key) {
         case 'ArrowUp':
@@ -109,4 +115,17 @@ function changeDirection(event) {
             if (direction !== 'left') direction = 'right';
             break;
     }
+}
+
+let isPaused = false;
+
+function pauseGame() {
+    if (isPaused) {
+        interval = setInterval(moveSnake, 200);
+        document.getElementById('pause').innerText = "Pause Game";
+    } else {
+        clearInterval(interval);
+        document.getElementById('pause').innerText = "Resume Game";
+    }
+    isPaused = !isPaused;
 }
