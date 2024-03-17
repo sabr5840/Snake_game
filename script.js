@@ -14,15 +14,39 @@ const gameBoard = document.getElementById('game-board');
 gameBoard.style.gridTemplateColumns = `repeat(${COLS}, 20px)`;
 gameBoard.style.gridTemplateRows = `repeat(${ROWS}, 20px)`;
 
+// Queue
+let snakeQueue = [];
+let queueStart = 0; 
+let queueEnd = 0;   
+
+function enqueue(item) {
+    snakeQueue[queueEnd++] = item;
+}
+
+function dequeue() {
+    if (isEmpty()) {
+        return undefined;
+    }
+    const item = snakeQueue[queueStart];
+    delete snakeQueue[queueStart++];
+    return item;
+}
+
+function isEmpty() {
+    return queueStart === queueEnd;
+}
+
 // Start the game
 initializeGame();
+
 function tryAgain() {
-    initializeGame(); 
+    initializeGame();
 }
 
 function initializeGame() {
     console.log("Initializing game...");
     snake = [{ x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) }];
+    enqueue(snake[0]); 
     food = generateFoodPosition();
     score = 0;
     direction = 'right';
@@ -49,8 +73,14 @@ function moveSnake() {
             break;
     }
 
-    // Tjekker om slangen rammer kanten af spillepladen
+    
     if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
+        clearInterval(interval);
+        alert('Game Over! Your Score: ' + score);
+        return;
+    }
+
+     if (snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y)) {
         clearInterval(interval);
         alert('Game Over! Your Score: ' + score);
         return;
@@ -60,16 +90,17 @@ function moveSnake() {
         score++;
         food = generateFoodPosition();
     } else {
-        snake.pop(); 
+        dequeue(); // remove the last pos 
     }
 
-    if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+    if (snakeQueue.some(segment => segment.x === head.x && segment.y === head.y)) {
         clearInterval(interval);
         alert('Game Over! Your Score: ' + score);
         return;
     }
 
-    snake.unshift(head); 
+    snake.unshift(head); // Add head
+    enqueue({ x: head.x, y: head.y }); // add the pos of head 
     render();
 }
 
