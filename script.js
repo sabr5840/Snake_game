@@ -9,32 +9,32 @@ let food;
 let score;
 let direction;
 let interval;
+let snakeQueue; // Brug den opdaterede kø
 
 const gameBoard = document.getElementById('game-board');
 gameBoard.style.gridTemplateColumns = `repeat(${COLS}, 20px)`;
 gameBoard.style.gridTemplateRows = `repeat(${ROWS}, 20px)`;
 
-// Queue
-let snakeQueue = [];
-let queueStart = 0; 
-let queueEnd = 0;   
-
-function enqueue(item) {
-    snakeQueue[queueEnd++] = item;
+// Opdateret kø
+function Queue() {
+    this.elements = [];
 }
 
-function dequeue() {
-    if (isEmpty()) {
-        return undefined;
-    }
-    const item = snakeQueue[queueStart];
-    delete snakeQueue[queueStart++];
-    return item;
-}
+Queue.prototype.enqueue = function(e) {
+    this.elements.push(e);
+};
 
-function isEmpty() {
-    return queueStart === queueEnd;
-}
+Queue.prototype.dequeue = function() {
+    return this.elements.shift();
+};
+
+Queue.prototype.isEmpty = function() {
+    return this.elements.length === 0;
+};
+
+Queue.prototype.peek = function() {
+    return !this.isEmpty() ? this.elements[0] : undefined;
+};
 
 // Start the game
 initializeGame();
@@ -46,7 +46,8 @@ function tryAgain() {
 function initializeGame() {
     console.log("Initializing game...");
     snake = [{ x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) }];
-    enqueue(snake[0]); 
+    snakeQueue = new Queue(); // Initialiser den nye kø
+    snakeQueue.enqueue(snake[0]);
     food = generateFoodPosition();
     score = 0;
     direction = 'right';
@@ -74,13 +75,7 @@ function moveSnake() {
     }
 
     
-    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
-        clearInterval(interval);
-        alert('Game Over! Your Score: ' + score);
-        return;
-    }
-
-     if (snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y)) {
+    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS || snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y)) {
         clearInterval(interval);
         alert('Game Over! Your Score: ' + score);
         return;
@@ -90,17 +85,12 @@ function moveSnake() {
         score++;
         food = generateFoodPosition();
     } else {
-        dequeue(); // remove the last pos 
-    }
-
-    if (snakeQueue.some(segment => segment.x === head.x && segment.y === head.y)) {
-        clearInterval(interval);
-        alert('Game Over! Your Score: ' + score);
-        return;
+        snakeQueue.dequeue(); // remove the last pos
+        snake.pop(); // Opdater også snake-arrayet
     }
 
     snake.unshift(head); // Add head
-    enqueue({ x: head.x, y: head.y }); // add the pos of head 
+    snakeQueue.enqueue({ x: head.x, y: head.y }); // add the pos of head 
     render();
 }
 
@@ -132,6 +122,7 @@ function render() {
 }
 
 function changeDirection(event) {
+    event.preventDefault(); // Forhindre standard browser handling
     switch (event.key) {
         case 'ArrowUp':
             if (direction !== 'down') direction = 'up';
